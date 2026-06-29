@@ -3,127 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>クレメちゃん</title>
+<title>クレメちゃん天気</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
   :root {
-    --bg: #f0f7ee; --surface: #ffffff; --card: #e8f5e3;
-    --green-dark: #2d5a27; --green-mid: #4a8c3f; --green-light: #7bc67a;
-    --green-pale: #c8e6c4; --accent: #ff6b35; --text: #1e3a1a; --muted: #7a9e76;
-    --shadow: rgba(45,90,39,0.12);
+    --bg: #f0f7ee; --surface: #ffffff; --green-dark: #2d5a27;
+    --green-mid: #4a8c3f; --green-light: #7bc67a; --green-pale: #c8e6c4;
+    --text: #1e3a1a; --muted: #7a9e76; --shadow: rgba(45,90,39,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
-  }
+  body { background: var(--bg); color: var(--text); font-family: "M PLUS Rounded 1c", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
 
-  /* LOADING */
-  #loading-screen {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 200; gap: 20px;
-  }
+  /* Header */
+  .app-header { background: var(--green-dark); padding: 12px 16px; width: 100%; max-width: 480px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 10; }
+  .header-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--green-pale); }
+  .header-avatar img { width: 38px; height: 38px; object-fit: contain; image-rendering: pixelated; }
+  .header-info h1 { font-family: "Zen Maru Gothic", sans-serif; font-size: 0.95rem; font-weight: 900; color: #fff; }
+  .header-status { font-size: 0.68rem; color: var(--green-light); margin-top: 1px; }
+  .weather-badge { margin-left: auto; background: rgba(255,255,255,0.13); border-radius: 20px; padding: 4px 11px; font-size: 0.72rem; color: #fff; display: flex; align-items: center; gap: 4px; }
+
+  /* Main */
+  .main { width: 100%; max-width: 480px; padding-bottom: 40px; }
+
+  /* Character */
+  .character-section { background: linear-gradient(180deg, var(--green-dark) 0%, var(--green-dark) 60px, var(--bg) 60px); padding: 0 20px 16px; display: flex; flex-direction: column; align-items: center; }
+  .character-stage { width: 170px; height: 170px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .char-glow { position: absolute; inset: 0; border-radius: 50%; animation: glow-pulse 3s ease-in-out infinite; }
+  @keyframes glow-pulse { 0%,100% { opacity:.6; transform:scale(.95); } 50% { opacity:1; transform:scale(1.05); } }
+  .char-img { position: relative; z-index: 2; width: 150px; height: 150px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.22)); animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  .state-label { margin-top: 6px; background: var(--surface); border: 2px solid var(--green-pale); border-radius: 20px; padding: 4px 16px; font-size: 0.72rem; font-weight: 700; color: var(--green-mid); }
+  .intro-bubble { margin-top: 10px; background: var(--surface); border-radius: 18px 18px 18px 4px; padding: 13px 17px; font-size: 0.88rem; line-height: 1.6; color: var(--text); box-shadow: 0 2px 12px var(--shadow); position: relative; width: 100%; }
+  .intro-bubble::before { content: ""; position: absolute; top: -8px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 8px solid var(--surface); }
+
+  /* Weather strip */
+  .weather-strip { margin: 0 16px 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .weather-card { background: var(--surface); border-radius: 14px; padding: 11px 8px; text-align: center; box-shadow: 0 2px 8px var(--shadow); border: 1px solid var(--green-pale); }
+  .wc-icon { font-size: 1.3rem; margin-bottom: 3px; }
+  .wc-val { font-family: "Zen Maru Gothic", sans-serif; font-size: 1.05rem; font-weight: 900; color: var(--green-dark); }
+  .wc-label { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+
+  /* Menu buttons */
+  .menu-section { padding: 0 16px; }
+  .menu-title { font-size: 0.75rem; color: var(--muted); font-weight: 700; margin-bottom: 10px; letter-spacing: 0.04em; }
+  .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .menu-btn { background: var(--surface); border: 1.5px solid var(--green-pale); border-radius: 16px; padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px var(--shadow); }
+  .menu-btn:hover, .menu-btn.active { background: var(--green-pale); border-color: var(--green-mid); transform: translateY(-2px); }
+  .menu-btn .btn-icon { font-size: 1.5rem; margin-bottom: 6px; display: block; }
+  .menu-btn .btn-label { font-size: 0.78rem; font-weight: 700; color: var(--green-dark); }
+
+  /* Result panel */
+  .result-panel { margin: 0 16px 20px; background: var(--surface); border-radius: 18px; padding: 18px; box-shadow: 0 2px 12px var(--shadow); border: 1px solid var(--green-pale); display: none; }
+  .result-panel.show { display: block; animation: slide-in 0.3s ease-out; }
+  @keyframes slide-in { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  .result-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .result-icon { font-size: 1.4rem; }
+  .result-title { font-family: "Zen Maru Gothic", sans-serif; font-size: 0.95rem; font-weight: 900; color: var(--green-dark); }
+  .result-body { font-size: 0.85rem; line-height: 1.8; color: var(--text); }
+  .result-body .item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--green-pale); }
+  .result-body .item:last-child { border-bottom: none; }
+  .result-body .item-label { color: var(--muted); font-size: 0.78rem; }
+  .result-body .item-val { font-weight: 700; color: var(--green-dark); font-size: 0.9rem; }
+  .result-bubble { background: var(--bg); border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 0.83rem; line-height: 1.7; color: var(--text); border-left: 3px solid var(--green-mid); }
+  .forecast-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--green-pale); font-size: 0.82rem; }
+  .forecast-row:last-child { border-bottom: none; }
+  .forecast-day { color: var(--muted); min-width: 40px; }
+  .forecast-icon { font-size: 1.1rem; }
+  .forecast-temp { font-weight: 700; color: var(--green-dark); }
+  .forecast-rain { color: #5599cc; font-size: 0.75rem; }
+
+  /* Loading */
+  #loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; gap: 20px; }
   .loading-img { width: 100px; height: 100px; object-fit: contain; image-rendering: pixelated; animation: sprout 1s ease-in-out infinite alternate; }
   @keyframes sprout { from { transform: scale(0.9) translateY(4px); } to { transform: scale(1.05) translateY(-4px); } }
-  .loading-text { font-family: 'Zen Maru Gothic', sans-serif; font-size: 0.95rem; color: var(--muted); font-weight: 700; }
+  .loading-text { font-family: "Zen Maru Gothic", sans-serif; font-size: 0.9rem; color: var(--muted); font-weight: 700; }
   .loading-bar { width: 160px; height: 6px; background: var(--green-pale); border-radius: 99px; overflow: hidden; }
   .loading-fill { height: 100%; background: linear-gradient(90deg, var(--green-mid), var(--green-light)); border-radius: 99px; animation: fill 2.2s ease-in-out forwards; }
   @keyframes fill { from { width: 0%; } to { width: 100%; } }
-
-  /* APP */
-  #app { width: 100%; max-width: 480px; min-height: 100vh; display: none; flex-direction: column; }
-
-  /* Header */
-  .app-header {
-    background: var(--green-dark); padding: 12px 16px;
-    display: flex; align-items: center; gap: 10px;
-    position: sticky; top: 0; z-index: 10;
-  }
-  .header-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--green-pale); display: flex; align-items: center; justify-content: center; }
-  .header-avatar img { width: 38px; height: 38px; object-fit: contain; image-rendering: pixelated; }
-  .header-info h1 { font-family: 'Zen Maru Gothic', sans-serif; font-size: 0.95rem; font-weight: 900; color: #fff; }
-  .header-status { font-size: 0.68rem; color: var(--green-light); margin-top: 1px; }
-  .weather-badge { margin-left: auto; background: rgba(255,255,255,0.13); border-radius: 20px; padding: 4px 11px; font-size: 0.72rem; color: #fff; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-
-  /* Character section */
-  .character-section {
-    background: linear-gradient(180deg, var(--green-dark) 0%, var(--green-dark) 60px, var(--bg) 60px);
-    padding: 0 20px 16px; display: flex; flex-direction: column; align-items: center;
-  }
-  .character-stage { width: 170px; height: 170px; position: relative; display: flex; align-items: center; justify-content: center; }
-  .character-glow { position: absolute; inset: 0; border-radius: 50%; animation: glow-pulse 3s ease-in-out infinite; }
-  @keyframes glow-pulse { 0%,100% { opacity:.6; transform:scale(.95); } 50% { opacity:1; transform:scale(1.05); } }
-  .character-img {
-    position: relative; z-index: 2;
-    width: 150px; height: 150px; object-fit: contain;
-    image-rendering: pixelated;
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.22));
-    animation: bob 3s ease-in-out infinite;
-    transition: opacity 0.4s;
-  }
-  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
-  .state-label { margin-top: 6px; background: var(--surface); border: 2px solid var(--green-pale); border-radius: 20px; padding: 4px 16px; font-size: 0.72rem; font-weight: 700; color: var(--green-mid); letter-spacing: .04em; }
-  .intro-bubble { margin-top: 10px; background: var(--surface); border-radius: 18px 18px 18px 4px; padding: 13px 17px; font-size: 0.88rem; line-height: 1.6; color: var(--text); box-shadow: 0 2px 12px var(--shadow); position: relative; width: 100%; }
-  .intro-bubble::before { content: ''; position: absolute; top: -8px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 8px solid var(--surface); }
-
-  /* Weather strip */
-  .weather-strip { margin: 0 16px 14px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .weather-card { background: var(--surface); border-radius: 14px; padding: 11px 8px; text-align: center; box-shadow: 0 2px 8px var(--shadow); border: 1px solid var(--green-pale); }
-  .wc-icon { font-size: 1.3rem; margin-bottom: 3px; }
-  .wc-val { font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.05rem; font-weight: 900; color: var(--green-dark); }
-  .wc-label { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
-
-  /* Chat */
-  .chat-area { flex: 1; padding: 0 14px 110px; display: flex; flex-direction: column; gap: 12px; }
-  .msg-row { display: flex; align-items: flex-end; gap: 8px; }
-  .msg-row.user { flex-direction: row-reverse; }
-  .msg-avatar { width: 30px; height: 30px; background: var(--green-pale); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .msg-avatar img { width: 30px; height: 30px; object-fit: contain; image-rendering: pixelated; }
-  .bubble { max-width: 78%; padding: 10px 14px; border-radius: 18px; font-size: 0.87rem; line-height: 1.65; box-shadow: 0 2px 8px var(--shadow); }
-  .bubble.ai { background: var(--surface); border-bottom-left-radius: 4px; color: var(--text); border: 1px solid var(--green-pale); }
-  .bubble.user { background: var(--green-dark); border-bottom-right-radius: 4px; color: #fff; }
-  .bubble.thinking { background: var(--surface); border: 1px solid var(--green-pale); color: var(--muted); display: flex; align-items: center; gap: 7px; font-style: italic; font-size: 0.82rem; }
-  .dot-anim span { display: inline-block; width: 6px; height: 6px; background: var(--green-mid); border-radius: 50%; animation: dotbounce 1.2s infinite; }
-  .dot-anim span:nth-child(2) { animation-delay: .2s; }
-  .dot-anim span:nth-child(3) { animation-delay: .4s; }
-  @keyframes dotbounce { 0%,80%,100% { transform:translateY(0); } 40% { transform:translateY(-5px); } }
-  .msg-time { font-size: 0.6rem; color: var(--muted); padding: 0 3px; align-self: flex-end; margin-bottom: 2px; }
-  .chat-divider { text-align: center; font-size: 0.68rem; color: var(--muted); padding: 4px 0; position: relative; }
-  .chat-divider::before, .chat-divider::after { content: ''; position: absolute; top: 50%; width: 28%; height: 1px; background: var(--green-pale); }
-  .chat-divider::before { left: 0; } .chat-divider::after { right: 0; }
-
-  /* Chips */
-  .chips-row { padding: 0 14px 8px; display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .chips-row::-webkit-scrollbar { display: none; }
-  .chip { background: var(--surface); border: 1.5px solid var(--green-pale); border-radius: 20px; padding: 6px 12px; font-size: 0.74rem; font-weight: 700; color: var(--green-dark); cursor: pointer; white-space: nowrap; transition: all .2s; flex-shrink: 0; }
-  .chip:hover { background: var(--green-pale); border-color: var(--green-mid); }
-
-  /* Input */
-  .input-bar { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--green-pale); padding: 10px 12px; display: flex; gap: 8px; align-items: flex-end; box-shadow: 0 -4px 20px var(--shadow); }
-  .chat-input { flex: 1; background: var(--bg); border: 1.5px solid var(--green-pale); border-radius: 22px; padding: 10px 16px; font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.9rem; color: var(--text); outline: none; resize: none; max-height: 100px; line-height: 1.4; transition: border-color .2s; }
-  .chat-input:focus { border-color: var(--green-mid); }
-  .chat-input::placeholder { color: var(--muted); }
-  .send-btn { width: 42px; height: 42px; background: var(--green-dark); border: none; border-radius: 50%; color: #fff; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
-  .send-btn:hover { background: var(--green-mid); transform: scale(1.05); }
-  .send-btn:disabled { background: var(--green-pale); cursor: not-allowed; transform: none; }
 </style>
 </head>
 <body>
 
 <div id="loading-screen">
-  <img class="loading-img" id="loading-img" src="" alt="クレメちゃん">
+  <img class="loading-img" id="loading-img" src="" alt="クレメ">
   <div class="loading-text">クレメちゃんを呼んでいます…</div>
   <div class="loading-bar"><div class="loading-fill"></div></div>
 </div>
 
-<div id="app">
+<div id="app" style="display:none; width:100%; max-width:480px; flex-direction:column;">
   <div class="app-header">
-    <div class="header-avatar"><img id="header-avatar-img" src="" alt="クレメ"></div>
+    <div class="header-avatar"><img id="header-img" src="" alt="クレメ"></div>
     <div class="header-info">
-      <h1>クレメちゃん</h1>
-      <div class="header-status" id="header-status">世田谷区の今日の様子を確認中…</div>
+      <h1>クレメちゃん天気</h1>
+      <div class="header-status" id="header-status">世田谷区の天気を確認中…</div>
     </div>
     <div class="weather-badge">
       <span id="badge-icon">🌤</span>
@@ -131,36 +103,52 @@
     </div>
   </div>
 
-  <div class="character-section">
-    <div class="character-stage">
-      <div class="character-glow" id="char-glow"></div>
-      <img class="character-img" id="char-img" src="" alt="クレメちゃん">
+  <div class="main">
+    <div class="character-section">
+      <div class="character-stage">
+        <div class="char-glow" id="char-glow"></div>
+        <img class="char-img" id="char-img" src="" alt="クレメちゃん">
+      </div>
+      <div class="state-label" id="state-label">読み込み中…</div>
+      <div class="intro-bubble" id="intro-bubble">ちょっとまってね…🌿</div>
     </div>
-    <div class="state-label" id="state-label">読み込み中…</div>
-    <div class="intro-bubble" id="intro-bubble">ちょっとまってね…🌿</div>
-  </div>
 
-  <div class="weather-strip">
-    <div class="weather-card"><div class="wc-icon">🌡</div><div class="wc-val" id="wc-temp">--</div><div class="wc-label">気温</div></div>
-    <div class="weather-card"><div class="wc-icon">☔</div><div class="wc-val" id="wc-rain">--</div><div class="wc-label">降水確率</div></div>
-    <div class="weather-card"><div class="wc-icon">💨</div><div class="wc-val" id="wc-wind">--</div><div class="wc-label">風速</div></div>
-  </div>
+    <div class="weather-strip">
+      <div class="weather-card"><div class="wc-icon">🌡</div><div class="wc-val" id="wc-temp">--</div><div class="wc-label">気温</div></div>
+      <div class="weather-card"><div class="wc-icon">☔</div><div class="wc-val" id="wc-rain">--</div><div class="wc-label">降水確率</div></div>
+      <div class="weather-card"><div class="wc-icon">💨</div><div class="wc-val" id="wc-wind">--</div><div class="wc-label">風速</div></div>
+    </div>
 
-  <div class="chat-area" id="chat-area">
-    <div class="chat-divider">クレメちゃんとおしゃべりしよう</div>
-  </div>
+    <div class="menu-section">
+      <div class="menu-title">🍀 クレメちゃんに聞いてみよう</div>
+      <div class="menu-grid">
+        <div class="menu-btn" onclick="showInfo('uv')">
+          <span class="btn-icon">☀️</span>
+          <span class="btn-label">UV指数は？</span>
+        </div>
+        <div class="menu-btn" onclick="showInfo('forecast')">
+          <span class="btn-icon">📅</span>
+          <span class="btn-label">週間予報は？</span>
+        </div>
+        <div class="menu-btn" onclick="showInfo('outfit')">
+          <span class="btn-icon">👗</span>
+          <span class="btn-label">服装は？</span>
+        </div>
+        <div class="menu-btn" onclick="showInfo('today')">
+          <span class="btn-icon">🌿</span>
+          <span class="btn-label">今日まとめて</span>
+        </div>
+      </div>
 
-  <div class="chips-row">
-    <div class="chip" onclick="sendChip('今日の日経平均株価を教えて')">📈 今日の株価</div>
-    <div class="chip" onclick="sendChip('UV指数はどのくらい？')">☀️ UV指数</div>
-    <div class="chip" onclick="sendChip('今日のおすすめの服装は？')">👗 服装アドバイス</div>
-    <div class="chip" onclick="sendChip('今週の天気予報は？')">📅 週間予報</div>
-    <div class="chip" onclick="sendChip('何か面白いニュース教えて')">🎲 今日のニュース</div>
-  </div>
-
-  <div class="input-bar">
-    <textarea class="chat-input" id="chat-input" placeholder="クレメちゃんに話しかけてみよう…" rows="1"></textarea>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
+      <div class="result-panel" id="result-panel">
+        <div class="result-header">
+          <span class="result-icon" id="result-icon">☀️</span>
+          <span class="result-title" id="result-title">UV指数</span>
+        </div>
+        <div class="result-body" id="result-body"></div>
+        <div class="result-bubble" id="result-bubble"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -174,44 +162,22 @@ const CHAR_IMAGES = [
 ];
 
 const STATES = [
-  { name: 'ボロボロ…', glow: '#a8c8a4', intro: 'う、うう…今日はなんだかしんどいよ…😵 雨が降ったり寒かったりするとつらくなっちゃう。', emoji: '😵' },
-  { name: 'ふつう',    glow: '#b8d8b4', intro: 'やあ！今日はまあまあかなー。なんでも聞いてね😑', emoji: '😑' },
-  { name: 'げんき！',  glow: '#7bc67a', intro: 'わーい！今日はいい感じの天気！なんでも聞いてね😊', emoji: '😊' },
-  { name: 'さいこう！',glow: '#4ecb71', intro: 'うわあああ！最高すぎる天気！テンション爆上がりだよ！😲', emoji: '😲' },
-  { name: 'あちぃ…',  glow: '#ff9944', intro: 'あっつ…！今日は焦げそうだよ🔥 暑すぎて溶けそう…でも話しかけてくれると嬉しいな！', emoji: '🔥' },
+  { name: "ボロボロ…", glow: "#a8c8a4", emoji: "😵",
+    intro: "う、うう…今日はなんだかしんどいよ…😵 外出るのつらそうな天気だね。" },
+  { name: "ふつう",    glow: "#b8d8b4", emoji: "😑",
+    intro: "やあ！今日はまあまあかなー。なんでも聞いてね😑" },
+  { name: "げんき！",  glow: "#7bc67a", emoji: "😊",
+    intro: "わーい！今日はいい感じの天気！なんでも聞いてね😊" },
+  { name: "さいこう！",glow: "#4ecb71", emoji: "😲",
+    intro: "うわあああ！最高すぎる天気！テンション爆上がりだよ！😲" },
+  { name: "あちぃ…",  glow: "#ff9944", emoji: "🔥",
+    intro: "あっつ…！今日は焦げそうだよ🔥 熱中症に気をつけてね！" },
 ];
 
 const LAT = 35.6464, LON = 139.6533;
 let weatherData = null;
+let weeklyData = null;
 let currentState = 2;
-let chatHistory = [];
-let isTyping = false;
-
-// Set image for given state index
-function setCharImage(stateIdx) {
-  const src = CHAR_IMAGES[stateIdx];
-  document.getElementById('char-img').src = src;
-  document.getElementById('header-avatar-img').src = src;
-  document.getElementById('loading-img').src = CHAR_IMAGES[2]; // always show 元気 on load
-}
-
-async function fetchWeather() {
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,precipitation_probability,wind_speed_10m,weather_code,uv_index&timezone=Asia/Tokyo&forecast_days=1`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const c = data.current;
-    return {
-      temp: Math.round(c.temperature_2m),
-      rain: c.precipitation_probability ?? 0,
-      wind: Math.round(c.wind_speed_10m * 10) / 10,
-      uv: c.uv_index ?? 0,
-      code: c.weather_code,
-    };
-  } catch(e) {
-    return { temp: 22, rain: 20, wind: 3.2, uv: 4, code: 1 };
-  }
-}
 
 function getStateFromWeather(w) {
   if (w.temp >= 33) return 4;
@@ -224,140 +190,163 @@ function getStateFromWeather(w) {
 }
 
 function getWeatherIcon(code) {
-  if (code === 0) return '☀️';
-  if (code <= 3) return '⛅';
-  if (code <= 49) return '🌫️';
-  if (code <= 69) return '🌧️';
-  if (code <= 79) return '❄️';
-  if (code <= 99) return '⛈️';
-  return '🌤️';
+  if (code === 0) return "☀️";
+  if (code <= 3) return "⛅";
+  if (code <= 49) return "🌫️";
+  if (code <= 69) return "🌧️";
+  if (code <= 79) return "❄️";
+  if (code <= 99) return "⛈️";
+  return "🌤️";
 }
 
-function buildSystemPrompt(w, state) {
-  return `あなたは「クレメちゃん」という植物キャラクターのAIです。
-現在の状態: ${state.name}（${state.emoji}）
-今日の世田谷区の天気: 気温${w.temp}℃、降水確率${w.rain}%、風速${w.wind}m/s、UV指数${w.uv}
-
-【キャラクター設定】
-- ちいさくてかわいい植物のキャラクター
-- 今の状態（${state.name}）に合った感情で話す
-- 語尾は「〜だよ」「〜だね」「〜かな」など柔らかい口調
-- 絵文字を時々使う（多すぎず自然に）
-- 天気・株価・UV・ニュースなど何でも調べて教えてあげる
-- 株価や最新情報はウェブ検索してから答える
-- 回答は2〜4文程度でコンパクトに、会話を楽しむ感じで`;
+function getUVLevel(uv) {
+  if (uv <= 2) return { label: "低い", color: "#4caf50", advice: "特に気にしなくて大丈夫だよ！" };
+  if (uv <= 5) return { label: "中程度", color: "#ff9800", advice: "帽子があると安心だよ！" };
+  if (uv <= 7) return { label: "高い", color: "#f44336", advice: "日焼け止めを塗ってね！" };
+  if (uv <= 10) return { label: "非常に高い", color: "#9c27b0", advice: "外出はなるべく避けてね！日傘必須だよ！" };
+  return { label: "極端に強い", color: "#000", advice: "今日は外に出ないほうがいいよ…🔥" };
 }
 
-async function callClaude(systemPrompt) {
+function getOutfitAdvice(w) {
+  if (w.temp >= 30) return { icon: "👕", outfit: "半袖・薄手", items: ["日焼け止め必須", "帽子・日傘", "水分補給を忘れずに！"] };
+  if (w.temp >= 25) return { icon: "👔", outfit: "半袖 or 薄手長袖", items: ["折りたたみ傘があると安心", "軽めの服装でOK"] };
+  if (w.temp >= 20) return { icon: "🧥", outfit: "長袖・薄手のアウター", items: ["朝晩は少し肌寒いかも", "一枚羽織るものを"] };
+  if (w.temp >= 15) return { icon: "🧣", outfit: "長袖＋ジャケット", items: ["マフラーがあると安心", "重ね着がおすすめ"] };
+  return { icon: "🧤", outfit: "コート・防寒具", items: ["しっかり暖かくして！", "手袋・マフラー必須"] };
+}
+
+async function fetchWeather() {
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: chatHistory.slice(-12),
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }]
-      })
-    });
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,precipitation_probability,wind_speed_10m,weather_code,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&timezone=Asia/Tokyo&forecast_days=7`;
+    const res = await fetch(url);
     const data = await res.json();
-    return data.content.filter(b => b.type === 'text').map(b => b.text).join('')
-      || 'ごめんね、うまく答えられなかったよ…もう一回聞いてみて🌿';
+    const c = data.current;
+    weatherData = {
+      temp: Math.round(c.temperature_2m),
+      rain: c.precipitation_probability ?? 0,
+      wind: Math.round(c.wind_speed_10m * 10) / 10,
+      uv: Math.round((c.uv_index ?? 0) * 10) / 10,
+      code: c.weather_code,
+    };
+    weeklyData = data.daily;
+    return weatherData;
   } catch(e) {
-    return 'あれ、繋がらなかったよ…😵 もう一度話しかけてみて！';
+    weatherData = { temp: 22, rain: 20, wind: 3.2, uv: 4, code: 1 };
+    return weatherData;
   }
 }
 
-function addMessage(text, type) {
-  const area = document.getElementById('chat-area');
-  const now = new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
-  const row = document.createElement('div');
-  row.className = `msg-row ${type}`;
-  if (type === 'ai') {
-    row.innerHTML = `
-      <div class="msg-avatar"><img src="${CHAR_IMAGES[currentState]}" alt="クレメ" style="width:30px;height:30px;object-fit:contain;image-rendering:pixelated;"></div>
-      <div class="bubble ai">${text.replace(/\n/g,'<br>')}</div>
-      <div class="msg-time">${now}</div>`;
-  } else {
-    row.innerHTML = `
-      <div class="msg-time">${now}</div>
-      <div class="bubble user">${text.replace(/\n/g,'<br>')}</div>`;
-  }
-  area.appendChild(row);
-  area.scrollTop = area.scrollHeight;
+function showInfo(type) {
+  document.querySelectorAll(".menu-btn").forEach(b => b.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+
+  const panel = document.getElementById("result-panel");
+  const icon = document.getElementById("result-icon");
+  const title = document.getElementById("result-title");
+  const body = document.getElementById("result-body");
+  const bubble = document.getElementById("result-bubble");
+  const w = weatherData;
+  const st = STATES[currentState];
+
+  panel.classList.remove("show");
+  setTimeout(() => {
+    if (type === "uv") {
+      const uv = getUVLevel(w.uv);
+      icon.textContent = "☀️";
+      title.textContent = "今日のUV指数";
+      body.innerHTML = `
+        <div class="item"><span class="item-label">UV指数</span><span class="item-val" style="color:${uv.color}">${w.uv} — ${uv.label}</span></div>
+        <div class="item"><span class="item-label">天気</span><span class="item-val">${getWeatherIcon(w.code)} ${getWeatherLabel(w.code)}</span></div>
+        <div class="item"><span class="item-label">気温</span><span class="item-val">${w.temp}℃</span></div>
+      `;
+      bubble.textContent = `${st.emoji} ${uv.advice}`;
+
+    } else if (type === "forecast") {
+      icon.textContent = "📅";
+      title.textContent = "週間天気予報";
+      const days = ["今日","明日","明後日","3日後","4日後","5日後","6日後"];
+      let rows = "";
+      if (weeklyData) {
+        for (let i = 0; i < 7; i++) {
+          const rain = weeklyData.precipitation_probability_max[i] ?? "--";
+          rows += `<div class="forecast-row">
+            <span class="forecast-day">${days[i]}</span>
+            <span class="forecast-icon">${getWeatherIcon(weeklyData.weather_code[i])}</span>
+            <span class="forecast-temp">${Math.round(weeklyData.temperature_2m_max[i])}℃ / ${Math.round(weeklyData.temperature_2m_min[i])}℃</span>
+            <span class="forecast-rain">☔${rain}%</span>
+          </div>`;
+        }
+      }
+      body.innerHTML = rows;
+      bubble.textContent = `${st.emoji} 1週間の天気はこんな感じだよ！お出かけの計画に役立ててね🌿`;
+
+    } else if (type === "outfit") {
+      const outfit = getOutfitAdvice(w);
+      icon.textContent = outfit.icon;
+      title.textContent = "今日の服装アドバイス";
+      body.innerHTML = `
+        <div class="item"><span class="item-label">おすすめ</span><span class="item-val">${outfit.outfit}</span></div>
+        <div class="item"><span class="item-label">気温</span><span class="item-val">${w.temp}℃</span></div>
+        <div class="item"><span class="item-label">降水確率</span><span class="item-val">${w.rain}%</span></div>
+      ` + outfit.items.map(i => `<div class="item"><span class="item-label">✓</span><span class="item-val" style="font-size:0.82rem">${i}</span></div>`).join("");
+      bubble.textContent = `${st.emoji} 今日は${outfit.outfit}がおすすめだよ！${w.rain >= 50 ? "傘も忘れずにね☔" : "いい一日を🌿"}`;
+
+    } else if (type === "today") {
+      const uv = getUVLevel(w.uv);
+      const outfit = getOutfitAdvice(w);
+      icon.textContent = "🌿";
+      title.textContent = "今日のまとめ";
+      body.innerHTML = `
+        <div class="item"><span class="item-label">天気</span><span class="item-val">${getWeatherIcon(w.code)} ${getWeatherLabel(w.code)}</span></div>
+        <div class="item"><span class="item-label">気温</span><span class="item-val">${w.temp}℃</span></div>
+        <div class="item"><span class="item-label">降水確率</span><span class="item-val">${w.rain}%</span></div>
+        <div class="item"><span class="item-label">風速</span><span class="item-val">${w.wind}m/s</span></div>
+        <div class="item"><span class="item-label">UV指数</span><span class="item-val" style="color:${uv.color}">${w.uv} (${uv.label})</span></div>
+        <div class="item"><span class="item-label">服装</span><span class="item-val">${outfit.outfit}</span></div>
+      `;
+      bubble.textContent = `${st.emoji} 今日の世田谷区はこんな感じ！${w.rain >= 50 ? "傘を持ってね☔" : w.temp >= 30 ? "暑いから水分補給してね🔥" : "いい一日を🌿"}`;
+    }
+
+    panel.classList.add("show");
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, 100);
 }
 
-function showTyping() {
-  const area = document.getElementById('chat-area');
-  const el = document.createElement('div');
-  el.className = 'msg-row'; el.id = 'typing-indicator';
-  el.innerHTML = `
-    <div class="msg-avatar"><img src="${CHAR_IMAGES[currentState]}" alt="クレメ" style="width:30px;height:30px;object-fit:contain;image-rendering:pixelated;"></div>
-    <div class="bubble thinking"><div class="dot-anim"><span></span><span></span><span></span></div>調べてるよ…</div>`;
-  area.appendChild(el); area.scrollTop = area.scrollHeight;
+function getWeatherLabel(code) {
+  if (code === 0) return "快晴";
+  if (code <= 3) return "くもり";
+  if (code <= 49) return "霧";
+  if (code <= 69) return "雨";
+  if (code <= 79) return "雪";
+  if (code <= 99) return "雷雨";
+  return "晴れ";
 }
-
-function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
-
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text || isTyping) return;
-  input.value = ''; input.style.height = 'auto';
-  addMessage(text, 'user');
-  chatHistory.push({ role: 'user', content: text });
-  isTyping = true;
-  document.getElementById('send-btn').disabled = true;
-  showTyping();
-  const w = weatherData || { temp:22, rain:20, wind:3.2, uv:4 };
-  const reply = await callClaude(buildSystemPrompt(w, STATES[currentState]));
-  removeTyping();
-  chatHistory.push({ role: 'assistant', content: reply });
-  addMessage(reply, 'ai');
-  isTyping = false;
-  document.getElementById('send-btn').disabled = false;
-}
-
-function sendChip(text) { document.getElementById('chat-input').value = text; sendMessage(); }
 
 async function init() {
-  // Show 元気 image on loading screen
-  document.getElementById('loading-img').src = CHAR_IMAGES[2];
+  document.getElementById("loading-img").src = CHAR_IMAGES[2];
   await new Promise(r => setTimeout(r, 2300));
 
   const w = await fetchWeather();
-  weatherData = w;
   currentState = getStateFromWeather(w);
   const state = STATES[currentState];
 
-  setCharImage(currentState);
-  document.getElementById('wc-temp').textContent = w.temp + '℃';
-  document.getElementById('wc-rain').textContent = w.rain + '%';
-  document.getElementById('wc-wind').textContent = w.wind + 'm/s';
-  document.getElementById('badge-temp').textContent = w.temp + '℃';
-  document.getElementById('badge-icon').textContent = getWeatherIcon(w.code);
-  document.getElementById('header-status').textContent = `状態: ${state.name} ${state.emoji}`;
-  document.getElementById('state-label').textContent = state.name + ' ' + state.emoji;
-  document.getElementById('intro-bubble').textContent = state.intro;
-  document.getElementById('char-glow').style.background = `radial-gradient(circle, ${state.glow}90, transparent 70%)`;
+  document.getElementById("char-img").src = CHAR_IMAGES[currentState];
+  document.getElementById("header-img").src = CHAR_IMAGES[currentState];
+  document.getElementById("wc-temp").textContent = w.temp + "℃";
+  document.getElementById("wc-rain").textContent = w.rain + "%";
+  document.getElementById("wc-wind").textContent = w.wind + "m/s";
+  document.getElementById("badge-temp").textContent = w.temp + "℃";
+  document.getElementById("badge-icon").textContent = getWeatherIcon(w.code);
+  document.getElementById("header-status").textContent = `状態: ${state.name} ${state.emoji}`;
+  document.getElementById("state-label").textContent = state.name + " " + state.emoji;
+  document.getElementById("intro-bubble").textContent = state.intro;
+  document.getElementById("char-glow").style.background = `radial-gradient(circle, ${state.glow}90, transparent 70%)`;
 
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-
-  // Initial greeting
-  chatHistory.push({ role: 'user', content: `【初期化】気温${w.temp}℃、降水確率${w.rain}%、風速${w.wind}m/s。状態「${state.name}」として、かわいく挨拶して今日の天気を一言で教えて。` });
-  const reply = await callClaude(buildSystemPrompt(w, state));
-  chatHistory.push({ role: 'assistant', content: reply });
-  addMessage(reply, 'ai');
+  document.getElementById("loading-screen").style.display = "none";
+  document.getElementById("app").style.display = "flex";
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('chat-input');
-  input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 100) + 'px'; });
-  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-  init();
-});
+init();
 </script>
 </body>
 </html>
