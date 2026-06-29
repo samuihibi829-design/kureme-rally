@@ -12,11 +12,7 @@
     --text: #f0f0f5; --muted: #8888aa; --shadow: rgba(0,0,0,0.3);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-  }
+  body { background: var(--bg); color: var(--text); font-family: 'M PLUS Rounded 1c', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
 
   /* ===== ADMIN ===== */
   #admin-panel { width: 100%; max-width: 480px; padding: 20px 16px 60px; }
@@ -53,7 +49,35 @@
 
   /* ESCAPE card */
   .escape-card { margin: 28px 18px 0; width: calc(100% - 36px); background: linear-gradient(160deg, #1a1a2e, #0d0d1a); border: 1px solid rgba(255,255,255,0.07); border-radius: 22px; padding: 36px 24px; text-align: center; }
-  .escape-img { width: 120px; height: 120px; object-fit: contain; image-rendering: pixelated; margin-bottom: 14px; animation: float 3s ease-in-out infinite; }
+
+  /* シルエット用ラッパー */
+  .silhouette-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+  .silhouette-img {
+    width: 130px; height: 130px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    /* シルエット：真っ黒に近い暗色 + 緑がかった色味 */
+    filter: brightness(0) saturate(0) opacity(0.55) drop-shadow(0 0 12px rgba(78,205,196,0.3));
+    animation: float 3s ease-in-out infinite;
+  }
+  /* ？マークのオーバーレイ */
+  .silhouette-wrap::after {
+    content: "?";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-weight: 900;
+    font-size: 2.8rem;
+    color: rgba(78,205,196,0.7);
+    text-shadow: 0 0 16px rgba(78,205,196,0.5);
+    pointer-events: none;
+  }
+
   @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
   .escape-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--accent2); margin-bottom: 10px; }
   .escape-body { font-size: 0.87rem; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
@@ -103,7 +127,7 @@
   <button class="reset-btn" onclick="resetAll()">すべてリセット</button>
   <div class="info-box">
     <strong>ルール：</strong>エリアA〜Eそれぞれ独立カウント。<strong>5回ごと</strong>にクレメちゃんが出現！
-    全5種類が順番に登場します。
+    それ以外はシルエットだけ表示されます。
   </div>
   <div class="url-hint">
     <h3>📌 QRコードに設定するURL</h3>
@@ -199,6 +223,7 @@ function showScanPage(a, count) {
   const isAppear = count%5===0;
 
   if (isAppear) {
+    // キャラクター出現
     const ci = (Math.floor(count/5)-1)%5;
     const ch = CHARACTERS[ci];
     container.innerHTML = `
@@ -214,13 +239,15 @@ function showScanPage(a, count) {
       </div>`;
     launchConfetti();
   } else {
+    // 逃げた → シルエット表示
     const msg = ESCAPE_MSGS[(count-1)%ESCAPE_MSGS.length];
     const areasHtml = msg.areas.map(x=>`<span class="hint-tag">エリア${x}</span>`).join('');
-    // show ボロボロ or ふつう randomly for "escaped" mood
-    const escImg = CHAR_IMAGES[count%2]; // alternates 0/1
+    // シルエット用に「元気」のクレメちゃん画像をシルエット化して表示
     container.innerHTML = `
       <div class="escape-card">
-        <img class="escape-img" src="${CHAR_IMAGES[0]}" alt="クレメ">
+        <div class="silhouette-wrap">
+          <img class="silhouette-img" src="${CHAR_IMAGES[2]}" alt="クレメシルエット">
+        </div>
         <div class="escape-title">にげてしまった…！</div>
         <div class="escape-body">
           クレメちゃんはここにいたみたいだけど、<br>
@@ -270,7 +297,7 @@ function launchConfetti() {
 // Init
 renderGrid();
 
-// Handle URL param for real QR code
+// Handle URL param
 const p = new URLSearchParams(location.search);
 const aParam = p.get('area');
 if(aParam && AREAS.includes(aParam.toUpperCase())){
