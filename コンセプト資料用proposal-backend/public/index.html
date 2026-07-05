@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10152a;
+    --panel: #1a2140;
+    --panel-soft: #1f274a;
+    --line: #2e3760;
+    --gold: #c9a227;
+    --gold-soft: #e8c766;
+    --ember: #e8a857;
+    --text: #f2f0e6;
+    --text-muted: #8a93b3;
+    --text-faint: #545e86;
+    --radius: 12px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body{
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(201,162,39,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(232,168,87,0.06), transparent 60%);
+    min-height: 100vh;
+  }
+
+  .app{
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 22px 26px 26px;
+  }
+
+  /* ---------- Header ---------- */
+  .header-row{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(26px, 3.2vw, 34px);
+    letter-spacing: 0.06em;
+    color: var(--gold-soft);
+    font-weight: 700;
+  }
+  .eyebrow::before{
+    content:"";
+    width: 30px;
+    height:1px;
+    background: var(--gold);
+    display:inline-block;
+  }
+
+  .progress-dots{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .dot-row{ display:flex; gap:5px; }
+  .dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.15s ease;
+  }
+  .dot.filled{ background: var(--gold); }
+
+  /* ---------- Grid layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display:flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .col-name{ grid-column: 1 / 7; }
+  .col-third{ grid-column: span 2; }
+  .col-half{ grid-column: span 3; }
+  .col-full{ grid-column: 1 / 7; }
+
+  .field-head{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .field-num{
+    font-family: 'Shippori Mincho', serif;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .field-num.optional{ font-style: italic; }
+
+  label.field-label{
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.01em;
+  }
+
+  .field-hint{
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  input[type="text"], textarea{
+    width: 100%;
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.65;
+    padding: 10px 12px;
+    resize: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .col-name input[type="text"]{ font-size: 16px; padding: 12px 14px; }
+
+  textarea{ height: 100px; flex: 1; }
+
+  input[type="text"]::placeholder, textarea::placeholder{
+    color: var(--text-faint);
+  }
+
+  input[type="text"]:focus, textarea:focus{
+    outline: none;
+    border-color: var(--gold);
+    background: #232c52;
+  }
+  input[type="text"]:focus-visible, textarea:focus-visible{
+    outline: 2px solid var(--gold-soft);
+    outline-offset: 1px;
+  }
+
+  /* ---------- Image dropzone ---------- */
+  .dropzone{
+    border: 1.5px dashed var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .dropzone.drag-over{ border-color: var(--gold); background: rgba(201,162,39,0.06); }
+  .dropzone.is-full{ cursor: not-allowed; opacity: 0.5; }
+
+  .dropzone-title{ font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .dropzone-sub{ font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+
+  .thumb-grid{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .thumb{
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--panel-soft);
+  }
+  .thumb img{ width: 100%; height: 100%; object-fit: cover; display:block; }
+  .thumb button{
+    position:absolute; top: 2px; right: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: none; background: rgba(16,21,42,0.85);
+    color: var(--text); font-size: 10px; line-height: 1;
+    cursor: pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .thumb button:hover{ background: var(--ember); color: var(--bg); }
+
+  .image-count{ font-size: 10.5px; color: var(--text-muted); margin-top: 6px; }
+  .image-count strong{ color: var(--gold-soft); }
+
+  /* ---------- Tone chips ---------- */
+  .tone-row{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .tone-chips{ display:flex; flex-wrap: wrap; gap: 6px; }
+
+  .tone-chip{
+    border: 1px solid var(--line);
+    background: var(--panel-soft);
+    color: var(--text-muted);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .tone-chip:hover{ border-color: var(--gold-soft); color: var(--text); }
+  .tone-chip.selected{
+    border-color: var(--gold);
+    background: rgba(201,162,39,0.14);
+    color: var(--gold-soft);
+    font-weight: 700;
+  }
+  .tone-chip:focus-visible{ outline: 2px solid var(--gold-soft); outline-offset: 2px; }
+
+  .tone-freetext{ flex: 1; min-width: 220px; }
+  .tone-freetext input{ height: 34px; }
+
+  /* ---------- Generate button ---------- */
+  .generate-row{ display:flex; align-items:center; gap: 16px; }
+  .generate-btn{
+    border: none;
+    border-radius: 8px;
+    padding: 12px 26px;
+    background: linear-gradient(135deg, var(--gold), var(--ember));
+    color: #191204;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .generate-btn:hover{ box-shadow: 0 8px 24px rgba(201,162,39,0.25); transform: translateY(-1px); }
+  .generate-btn:active{ transform: translateY(0); }
+  .generate-btn:focus-visible{ outline: 2px solid var(--text); outline-offset: 2px; }
+
+  .generate-note{ font-size: 11px; color: var(--text-faint); line-height: 1.5; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
+
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: repeat(2, 1fr); }
+    .col-name, .col-full{ grid-column: 1 / 3; }
+    .col-third{ grid-column: span 1; }
+    .col-half{ grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <form id="proposalForm">
+
+    <div class="header-row">
+      <div class="eyebrow">PROPOSAL BUILDER</div>
+      <div class="progress-dots">
+        <span id="progressLabel">0 / 6 入力済み</span>
+        <div class="dot-row" id="dotRow">
+          <span class="dot" data-dot="0"></span>
+          <span class="dot" data-dot="1"></span>
+          <span class="dot" data-dot="2"></span>
+          <span class="dot" data-dot="3"></span>
+          <span class="dot" data-dot="4"></span>
+          <span class="dot" data-dot="5"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- 案件名 -->
+      <div class="card col-name">
+        <div class="field-head">
+          <label class="field-label" for="projectName">案件名</label>
+          <span class="field-num">01 — 表紙</span>
+        </div>
+        <input type="text" id="projectName" name="projectName" placeholder="例：藤岡駅クリスマス装飾" maxlength="60">
+      </div>
+
+      <!-- 施設の課題 / アプローチ / アイテム -->
+      <div class="card col-third">
+        <div class="field-head">
+          <label class="field-label" for="issue">施設の課題</label>
+          <span class="field-num">02</span>
+        </div>
+        <div class="field-hint">現状抱えている課題</div>
+        <textarea id="issue" name="issue" placeholder="例：駅前広場の夜間の賑わいが少なく、季節感を感じにくい。" maxlength="400"></textarea>
+      </div>
+
+      <div class="card col-third">
+        <div class="field-head">
+          <label class="field-label" for="approach">アプローチ</label>
+          <span class="field-num">03</span>
+        </div>
+        <div class="field-hint">課題への取り組み方</div>
+        <textarea id="approach" name="approach" placeholder="例：光と装飾で滞留動線をつくり、写真映えするスポットを設置する。" maxlength="400"></textarea>
+      </div>
+
+      <div class="card col-third">
+        <div class="field-head">
+          <label class="field-label" for="items">アイテム</label>
+          <span class="field-num">04</span>
+        </div>
+        <div class="field-hint">解決に用いるアイテム</div>
+        <textarea id="items" name="items" placeholder="例：LEDツリー、イルミネーションアーチ、ガーランド 一式" maxlength="400"></textarea>
+      </div>
+
+      <!-- 試作・その他 / イメージ写真 -->
+      <div class="card col-half">
+        <div class="field-head">
+          <label class="field-label" for="prototype">試作・その他</label>
+          <span class="field-num">05</span>
+        </div>
+        <div class="field-hint">試作状況・補足事項</div>
+        <textarea id="prototype" name="prototype" placeholder="例：11月中旬に現地サンプル設置予定。耐候性を検証中。" maxlength="400"></textarea>
+      </div>
+
+      <div class="card col-half">
+        <div class="field-head">
+          <label class="field-label" for="imageInput">イメージ写真</label>
+          <span class="field-num">06 — 最大5枚</span>
+        </div>
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="イメージ写真をアップロード">
+          <div class="dropzone-title">クリック、またはドラッグ&ドロップ</div>
+          <div class="dropzone-sub">JPG / PNG ・ 複数選択可</div>
+        </div>
+        <input type="file" id="imageInput" accept="image/*" multiple hidden>
+        <div class="thumb-grid" id="thumbGrid"></div>
+        <div class="image-count"><strong id="imageCount">0</strong> / 5 枚 添付済み</div>
+      </div>
+
+      <!-- トーン&マナー -->
+      <div class="card col-full">
+        <div class="field-head">
+          <label class="field-label" for="toneFreeText">トーン&マナー</label>
+          <span class="field-num optional">任意 — 未指定ならClaudeが自動判断</span>
+        </div>
+        <div class="tone-row">
+          <div class="tone-chips" id="toneChips">
+            <button type="button" class="tone-chip" data-tone="シンプル">シンプル</button>
+            <button type="button" class="tone-chip" data-tone="ドラマチック">ドラマチック</button>
+            <button type="button" class="tone-chip" data-tone="ドリーミー">ドリーミー</button>
+            <button type="button" class="tone-chip" data-tone="テキストベース">テキストベース</button>
+            <button type="button" class="tone-chip" data-tone="図形ベース">図形ベース</button>
+            <button type="button" class="tone-chip" data-tone="繊細">繊細</button>
+            <button type="button" class="tone-chip" data-tone="ラグジュアリー">ラグジュアリー</button>
+            <button type="button" class="tone-chip" data-tone="ハイブランド">ハイブランド</button>
+          </div>
+          <div class="tone-freetext">
+            <input type="text" id="toneFreeText" name="toneFreeText" placeholder="自由記述（例：高級感のある大人の雰囲気で）" maxlength="300">
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate -->
+      <div class="col-full generate-row">
+        <button type="submit" class="generate-btn">スライド資料を生成する</button>
+        <div class="generate-note">生成には数十秒かかる場合があります。</div>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<script>
+  const MAX_IMAGES = 5;
+  let images = [];
+
+  const fields = {
+    projectName: document.getElementById('projectName'),
+    issue: document.getElementById('issue'),
+    approach: document.getElementById('approach'),
+    items: document.getElementById('items'),
+    prototype: document.getElementById('prototype'),
+  };
+
+  const dotIndex = {
+    projectName: 0, issue: 1, approach: 2, items: 3, prototype: 4,
+  };
+
+  function setDot(index, filled){
+    const dot = document.querySelector(`.dot[data-dot="${index}"]`);
+    if (dot) dot.classList.toggle('filled', filled);
+    updateProgressLabel();
+  }
+
+  function updateProgressLabel(){
+    const filled = document.querySelectorAll('.dot.filled').length;
+    document.getElementById('progressLabel').textContent = `${filled} / 6 入力済み`;
+  }
+
+  Object.keys(fields).forEach(key => {
+    fields[key].addEventListener('input', () => {
+      setDot(dotIndex[key], fields[key].value.trim().length > 0);
+    });
+  });
+
+  // Image upload
+  const dropzone = document.getElementById('dropzone');
+  const imageInput = document.getElementById('imageInput');
+  const thumbGrid = document.getElementById('thumbGrid');
+  const imageCountEl = document.getElementById('imageCount');
+
+  dropzone.addEventListener('click', () => {
+    if (images.length >= MAX_IMAGES) return;
+    imageInput.click();
+  });
+  dropzone.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && images.length < MAX_IMAGES) {
+      e.preventDefault();
+      imageInput.click();
+    }
+  });
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      if (images.length < MAX_IMAGES) dropzone.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+    });
+  });
+  dropzone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+
+  imageInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    imageInput.value = '';
+  });
+
+  function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    const room = MAX_IMAGES - images.length;
+    files.slice(0, room).forEach(file => {
+      images.push({ file, url: URL.createObjectURL(file) });
+    });
+    renderThumbs();
+  }
+
+  function removeImage(idx){
+    images.splice(idx, 1);
+    renderThumbs();
+  }
+
+  function renderThumbs(){
+    thumbGrid.innerHTML = '';
+    images.forEach((img, idx) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'thumb';
+      thumb.innerHTML = `<img src="${img.url}" alt="添付画像 ${idx + 1}"><button type="button" aria-label="削除">×</button>`;
+      thumb.querySelector('button').addEventListener('click', () => removeImage(idx));
+      thumbGrid.appendChild(thumb);
+    });
+    imageCountEl.textContent = images.length;
+    dropzone.classList.toggle('is-full', images.length >= MAX_IMAGES);
+    setDot(5, images.length > 0);
+  }
+
+  // Tone & manner
+  let selectedTones = [];
+  document.querySelectorAll('.tone-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const tone = chip.dataset.tone;
+      if (selectedTones.includes(tone)) {
+        selectedTones = selectedTones.filter(t => t !== tone);
+        chip.classList.remove('selected');
+      } else {
+        selectedTones.push(tone);
+        chip.classList.add('selected');
+      }
+    });
+  });
+  const toneFreeText = document.getElementById('toneFreeText');
+
+  // Form submit — バックエンド（/api/generate-proposal）へ送信し、返ってきた .pptx をダウンロード
+  const API_ENDPOINT = "/api/generate-proposal";
+  const submitBtn = document.querySelector(".generate-btn");
+
+  document.getElementById('proposalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("projectName", fields.projectName.value);
+    formData.append("issue", fields.issue.value);
+    formData.append("approach", fields.approach.value);
+    formData.append("items", fields.items.value);
+    formData.append("prototype", fields.prototype.value);
+    formData.append("toneTags", JSON.stringify(selectedTones));
+    formData.append("toneFreeText", toneFreeText.value);
+    images.forEach(img => formData.append("images", img.file));
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "生成中…";
+
+    try {
+      const response = await fetch(API_ENDPOINT, { method: "POST", body: formData });
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || `生成に失敗しました（status: ${response.status}）`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${fields.projectName.value.trim() || "proposal"}.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("生成中にエラーが発生しました。\n" + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "スライド資料を生成する";
+    }
+  });
+</script>
+
+</body>
+</html>
