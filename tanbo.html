@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>みんなのお花畑</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap');
+
+  :root {
+    --cream: #f5f0dc;
+    --brown: #8b6340;
+    --brown-dark: #5c3d1e;
+    --brown-light: #c4956a;
+    --green: #4a7c3f;
+    --green-light: #78b44a;
+    --green-pale: #b8d98a;
+    --green-dark: #2d5a1b;
+    --sky: #87ceeb;
+    --sky-dark: #5aaacc;
+    --pink: #e8a0b0;
+    --pink-dark: #c06080;
+    --yellow: #f0c840;
+    --orange: #e07030;
+    --text-dark: #3a2010;
+    --text-mid: #6a4828;
+    --shadow: rgba(58,32,16,0.2);
+    --border: #8b6340;
+    --pixel: 3px; /* ピクセルボーダーサイズ */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+
+  body {
+    background: var(--cream);
+    color: var(--text-dark);
+    font-family: 'DotGothic16', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 40px;
+    /* タイル背景 */
+    background-image:
+      repeating-linear-gradient(0deg, rgba(139,99,64,0.06) 0px, rgba(139,99,64,0.06) 1px, transparent 1px, transparent 16px),
+      repeating-linear-gradient(90deg, rgba(139,99,64,0.06) 0px, rgba(139,99,64,0.06) 1px, transparent 1px, transparent 16px);
+  }
+
+  /* ピクセルボーダーミックスイン */
+  .pixel-box {
+    border: 3px solid var(--brown-dark);
+    box-shadow:
+      3px 3px 0 var(--brown-dark),
+      inset 2px 2px 0 rgba(255,255,255,0.4),
+      inset -2px -2px 0 rgba(0,0,0,0.15);
+    border-radius: 0;
+  }
+
+  /* ===== ヘッダー ===== */
+  .hdr {
+    width: 100%;
+    background: var(--green);
+    border-bottom: 4px solid var(--green-dark);
+    box-shadow: 0 4px 0 var(--green-dark);
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+
+  .hdr-left { display: flex; align-items: center; gap: 8px; }
+
+  /* ドット絵木アイコン */
+  .tree-icon {
+    width: 32px; height: 32px;
+    image-rendering: pixelated;
+  }
+
+  .hdr-title {
+    font-family: 'DotGothic16', monospace;
+    font-size: 0.85rem;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--green-dark);
+    letter-spacing: 0.05em;
+  }
+
+  .hdr-badge {
+    background: var(--yellow);
+    border: 2px solid var(--brown-dark);
+    box-shadow: 2px 2px 0 var(--brown-dark);
+    padding: 4px 10px;
+    font-family: 'DotGothic16', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dark);
+  }
+
+  /* ===== メイン ===== */
+  .main { width: 100%; max-width: 480px; padding: 16px 12px 0; }
+
+  /* ===== パネル共通 ===== */
+  .panel {
+    background: var(--cream);
+    border: 3px solid var(--brown-dark);
+    box-shadow: 4px 4px 0 var(--brown-dark);
+    padding: 14px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px; right: 2px; bottom: 2px;
+    border: 1px solid rgba(255,255,255,0.5);
+    pointer-events: none;
+  }
+
+  .panel-title {
+    font-family: 'DotGothic16', monospace;
+    font-size: 0.82rem;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 2px solid var(--green-pale);
+    padding-bottom: 8px;
+  }
+
+  /* ===== カウンター ===== */
+  .counter-inner { text-align: center; }
+
+  .counter-big {
+    font-family: 'DotGothic16', monospace;
+    font-size: 2rem;
+    color: var(--pink-dark);
+    text-shadow: 3px 3px 0 rgba(192,96,128,0.3);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .counter-slash { font-size: 1rem; color: var(--text-mid); margin: 0 4px; }
+  .counter-total { font-size: 1rem; color: var(--text-mid); }
+  .counter-label { font-size: 0.62rem; color: var(--text-mid); margin-bottom: 10px; margin-top: 4px; }
+
+  /* ピクセルプログレスバー */
+  .pixel-progress {
+    height: 16px;
+    background: var(--brown-light);
+    border: 2px solid var(--brown-dark);
+    box-shadow: 2px 2px 0 var(--brown-dark), inset 1px 1px 0 rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .pixel-progress-fill {
+    height: 100%;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--green-light) 0px,
+      var(--green-light) 6px,
+      var(--green) 6px,
+      var(--green) 8px
+    );
+    transition: width 0.8s steps(10);
+    width: 0%;
+    position: relative;
+  }
+
+  .pixel-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.4);
+  }
+
+  .stage-text {
+    font-size: 0.62rem;
+    color: var(--green-dark);
+    background: var(--green-pale);
+    border: 2px solid var(--green);
+    box-shadow: 2px 2px 0 var(--green-dark);
+    padding: 4px 8px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  /* ===== お花畑 ===== */
+  .field-stage {
+    border: 3px solid var(--brown-dark);
+    box-shadow: 4px 4px 0 var(--brown-dark);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* 空 */
+  .sky-layer {
+    background: linear-gradient(180deg, #87ceeb 0%, #b8e0f5 100%);
+    height: 48px;
+    position: relative;
+    border-bottom: 3px solid #5aac3a;
+    overflow: hidden;
+  }
+
+  /* ドット絵雲 */
+  .pixel-cloud {
+    position: absolute;
+    background: #fff;
+    image-rendering: pixelated;
+  }
+
+  /* 草地 */
+  .grass-layer {
+    background: var(--green-light);
+    padding: 6px 4px 4px;
+    border-top: 0;
+    /* ドット絵草パターン */
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 7px,
+      rgba(0,0,0,0.06) 7px, rgba(0,0,0,0.06) 8px
+    );
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    background: #5aac3a;
+    border: 2px solid var(--green-dark);
+    padding: 3px;
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: #7bc65a;
+    position: relative;
+    overflow: visible;
+    /* チェッカーパターン風 */
+  }
+  .cell:nth-child(odd) { background: #78c058; }
+  .cell:nth-child(even) { background: #72b852; }
+
+  .cell canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+  @keyframes pixel-bloom {
+    0%  { transform: scale(0); opacity: 0; }
+    33% { transform: scale(1.4); opacity: 1; }
+    66% { transform: scale(0.85); }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+  .blooming { animation: pixel-bloom 0.5s steps(4) forwards; }
+
+  @keyframes pixel-glow {
+    0%,100% { filter: brightness(1.5) saturate(1.5); }
+    50%      { filter: brightness(2) saturate(2); }
+  }
+  .latest { animation: pixel-bloom 0.5s steps(4) forwards, pixel-glow 0.4s steps(2) 0.5s 4; }
+
+  /* キラキラ */
+  .sparkle-wrap { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 10; }
+  .sp { position: absolute; image-rendering: pixelated; animation: sp-fly linear forwards; }
+  @keyframes sp-fly { 0%{opacity:1;transform:translate(0,0);}100%{opacity:0;transform:translate(var(--tx),var(--ty));} }
+
+  /* 凡例 */
+  .legend {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 10px; justify-content: center;
+  }
+  .legend-item {
+    font-size: 0.58rem; color: var(--text-mid);
+    display: flex; align-items: center; gap: 3px;
+    background: rgba(139,99,64,0.08);
+    border: 1px solid var(--brown-light);
+    padding: 2px 6px;
+  }
+
+  /* ===== ボタン ===== */
+  .pixel-btn {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: 3px solid var(--green-dark);
+    box-shadow: 4px 4px 0 var(--green-dark);
+    padding: 14px 16px;
+    font-family: 'DotGothic16', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.08s steps(1);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+    text-shadow: 2px 2px 0 var(--green-dark);
+    position: relative;
+  }
+  .pixel-btn:hover {
+    background: var(--green-light);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--green-dark);
+  }
+  .pixel-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--green-dark);
+  }
+  .pixel-btn:disabled {
+    background: var(--brown-light);
+    border-color: var(--brown);
+    box-shadow: 4px 4px 0 var(--brown);
+    color: rgba(255,255,255,0.6);
+    cursor: not-allowed;
+    text-shadow: none;
+  }
+  .pixel-btn:disabled:hover { transform: none; box-shadow: 4px 4px 0 var(--brown); }
+
+  .plant-msg {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--text-mid);
+    min-height: 20px;
+    background: rgba(139,99,64,0.06);
+    border: 1px dashed var(--brown-light);
+    padding: 5px 8px;
+    margin-bottom: 14px;
+  }
+
+  /* ===== 完成バナー ===== */
+  .complete-banner {
+    background: var(--yellow);
+    border: 3px solid var(--brown-dark);
+    box-shadow: 4px 4px 0 var(--brown-dark);
+    padding: 14px;
+    text-align: center;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .complete-banner.show { display: block; animation: pixel-bloom 0.4s steps(3); }
+  .complete-title {
+    font-family: 'DotGothic16', monospace;
+    font-size: 0.85rem;
+    color: var(--brown-dark);
+    text-shadow: 2px 2px 0 rgba(255,255,255,0.5);
+    margin-bottom: 6px;
+  }
+  .complete-sub { font-size: 0.62rem; color: var(--brown); }
+
+  /* ===== 統計 ===== */
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat-item {
+    text-align: center;
+    background: var(--green-pale);
+    border: 2px solid var(--green);
+    box-shadow: 3px 3px 0 var(--green-dark);
+    padding: 10px 4px;
+  }
+  .stat-num {
+    font-family: 'DotGothic16', monospace;
+    font-size: 1.2rem;
+    color: var(--pink-dark);
+    text-shadow: 2px 2px 0 rgba(192,96,128,0.25);
+    display: block;
+  }
+  .stat-label { font-size: 0.55rem; color: var(--text-mid); margin-top: 3px; display: block; }
+
+  /* ===== パーティクル ===== */
+  .particle-layer { position: fixed; inset: 0; pointer-events: none; z-index: 100; overflow: hidden; }
+  .pfloat {
+    position: absolute;
+    font-family: 'DotGothic16', monospace;
+    animation: pf linear forwards;
+    image-rendering: pixelated;
+  }
+  @keyframes pf {
+    0%   { opacity:1; transform:translateY(0) scale(1); }
+    100% { opacity:0; transform:translateY(-180px) scale(0.5); }
+  }
+
+  /* ===== ダイアログ風テキストボックス ===== */
+  .dialog-box {
+    background: var(--cream);
+    border: 3px solid var(--brown-dark);
+    box-shadow: 4px 4px 0 var(--brown-dark), inset 1px 1px 0 rgba(255,255,255,0.5);
+    padding: 10px 14px;
+    font-size: 0.7rem;
+    color: var(--text-dark);
+    line-height: 1.8;
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .dialog-box::after {
+    content: '▼';
+    position: absolute;
+    bottom: 4px; right: 8px;
+    font-size: 0.5rem;
+    color: var(--text-mid);
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+  /* ドット絵装飾ライン */
+  .dot-divider {
+    height: 4px;
+    background: repeating-linear-gradient(90deg, var(--green) 0px, var(--green) 8px, var(--green-pale) 8px, var(--green-pale) 12px);
+    margin: 12px 0;
+    border-top: 1px solid var(--green-dark);
+    border-bottom: 1px solid var(--green-dark);
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="hdr">
+  <div class="hdr-left">
+    <canvas class="tree-icon" id="tree-icon" width="32" height="32"></canvas>
+    <div class="hdr-title">🌸 みんなのお花畑</div>
+  </div>
+  <div class="hdr-badge" id="hdr-count">0 / 100本</div>
+</div>
+
+<div class="main">
+
+  <!-- カウンターパネル -->
+  <div class="panel">
+    <div class="panel-title">📊 お花の数</div>
+    <div class="counter-inner">
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin-bottom:6px;">
+        <span class="counter-big" id="count-num">0</span>
+        <span class="counter-slash">/</span>
+        <span class="counter-total">100</span>
+      </div>
+      <div class="counter-label">みんなで咲かせたお花の数</div>
+      <div class="pixel-progress">
+        <div class="pixel-progress-fill" id="prog-fill"></div>
+      </div>
+      <div><span class="stage-text" id="stage-label">🌱 最初の一輪を咲かせよう！</span></div>
+    </div>
+  </div>
+
+  <!-- お花畑パネル -->
+  <div class="panel">
+    <div class="panel-title">🗺️ みんなのお花畑マップ</div>
+    <div class="field-stage">
+      <!-- 空 -->
+      <div class="sky-layer" id="sky-layer">
+        <canvas id="cloud-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      </div>
+      <!-- 草地 -->
+      <div class="grass-layer">
+        <div class="field-grid" id="field-grid"></div>
+      </div>
+    </div>
+    <div class="dot-divider"></div>
+    <div class="legend">
+      <div class="legend-item">🟩 空き</div>
+      <div class="legend-item">🌷 チューリップ</div>
+      <div class="legend-item">🌻 ひまわり</div>
+      <div class="legend-item">🌸 さくら</div>
+      <div class="legend-item">🌼 マーガレット</div>
+      <div class="legend-item">💜 すみれ</div>
+    </div>
+  </div>
+
+  <!-- 完成バナー -->
+  <div class="complete-banner" id="complete-banner">
+    <div class="complete-title">🎊 お花畑が満開になった！</div>
+    <div class="complete-sub">みんなの力で100本のお花が咲きました！</div>
+  </div>
+
+  <!-- ダイアログ風メッセージ -->
+  <div class="dialog-box" id="dialog-box">
+    さあ、お花をさかせよう！<br>
+    ホシテンクレイに来るたびに<br>
+    ひとつずつ増えていくよ♪
+  </div>
+
+  <!-- ボタン -->
+  <button class="pixel-btn" id="plant-btn" onclick="plantFlower()">
+    🌸 お花をさかせる
+  </button>
+  <div class="plant-msg" id="plant-msg">ボタンをおしてね！</div>
+
+  <!-- 統計パネル -->
+  <div class="panel">
+    <div class="panel-title">📋 きろく</div>
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-num" id="stat-p">0</span><span class="stat-label">咲いた本数</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-r">100</span><span class="stat-label">残り本数</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-pct">0%</span><span class="stat-label">達成率</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="particle-layer" id="pl"></div>
+
+<script>
+// ===== ドット絵 木アイコン描画 =====
+(function(){
+  const c = document.getElementById('tree-icon');
+  const ctx = c.getContext('2d');
+  // 幹
+  ctx.fillStyle = '#8b6340';
+  ctx.fillRect(12,20,8,12);
+  // 葉
+  ctx.fillStyle = '#4a8c3f';
+  ctx.fillRect(6,14,20,10);
+  ctx.fillRect(8,8,16,10);
+  ctx.fillRect(10,3,12,8);
+  // ハイライト
+  ctx.fillStyle = '#78b44a';
+  ctx.fillRect(10,4,6,4);
+  ctx.fillRect(8,9,6,4);
+})();
+
+// ===== ドット絵 雲 =====
+(function(){
+  const skyEl = document.getElementById('sky-layer');
+  const W = skyEl.offsetWidth || 300;
+  const canvas = document.getElementById('cloud-canvas');
+  canvas.width = W; canvas.height = 48;
+  const ctx = canvas.getContext('2d');
+
+  function drawCloud(x, y, scale=1) {
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    const s = scale;
+    [[0,8],[8,4],[16,0],[28,0],[38,4],[46,8],[46,14],[0,14]].forEach(([cx,cy])=>{
+      ctx.fillRect(x+cx*s, y+cy*s, 8*s, 8*s);
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(x+8*s, y+2*s, 8*s, 4*s);
+  }
+  drawCloud(8, 6, 0.7);
+  drawCloud(120, 10, 0.5);
+  drawCloud(W-120, 4, 0.8);
+  drawCloud(W-60, 16, 0.5);
+})();
+
+// ===== お花ドット絵 =====
+const FLOWERS = [
+  // 0: チューリップ
+  (ctx,W,H)=>{
+    ctx.fillStyle='#5a8c3f'; ctx.fillRect(W/2-1,Math.floor(H*.55),2,Math.floor(H*.44));
+    ctx.fillStyle='#ff5577'; ctx.fillRect(W/2-4,Math.floor(H*.22),8,10);
+    ctx.fillStyle='#ff88aa'; ctx.fillRect(W/2-3,Math.floor(H*.18),6,8);
+    ctx.fillStyle='#ffccdd'; ctx.fillRect(W/2-2,Math.floor(H*.16),4,5);
+    ctx.fillStyle='#cc3355'; ctx.fillRect(W/2-4,Math.floor(H*.28),2,5); ctx.fillRect(W/2+2,Math.floor(H*.28),2,5);
+    ctx.fillStyle='#6aaa4f'; ctx.fillRect(W/2-5,Math.floor(H*.6),4,3); ctx.fillRect(W/2+1,Math.floor(H*.65),4,3);
+  },
+  // 1: ひまわり
+  (ctx,W,H)=>{
+    ctx.fillStyle='#4a7a2f'; ctx.fillRect(W/2-1,Math.floor(H*.45),2,Math.floor(H*.54));
+    ctx.fillStyle='#ffcc00';
+    [[-6,-8],[0,-10],[6,-8],[8,-2],[6,4],[0,6],[-6,4],[-8,-2]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-2,Math.floor(H*.3)+dy-2,4,4);
+    });
+    ctx.fillStyle='#8b4513'; ctx.fillRect(W/2-4,Math.floor(H*.26),8,8);
+    ctx.fillStyle='#6b3010'; ctx.fillRect(W/2-2,Math.floor(H*.28),4,4);
+    ctx.fillStyle='#ff8800'; ctx.fillRect(W/2-1,Math.floor(H*.27),2,2);
+    ctx.fillStyle='#5aaa3f'; ctx.fillRect(W/2+2,Math.floor(H*.58),5,3); ctx.fillRect(W/2-6,Math.floor(H*.63),5,3);
+  },
+  // 2: さくら
+  (ctx,W,H)=>{
+    ctx.fillStyle='#7a5a3a'; ctx.fillRect(W/2-1,Math.floor(H*.5),2,Math.floor(H*.48));
+    ctx.fillStyle='#ffb3cc';
+    [[-6,-4],[-3,-8],[3,-8],[6,-4],[0,-2]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-2,Math.floor(H*.3)+dy,5,5);
+    });
+    ctx.fillStyle='#ff88aa';
+    [[-5,-3],[-2,-7],[3,-7],[5,-3],[0,-1]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-1,Math.floor(H*.3)+dy+1,3,3);
+    });
+    ctx.fillStyle='#ffee88'; ctx.fillRect(W/2-2,Math.floor(H*.3)-1,4,4);
+    ctx.fillStyle='#ff66aa'; ctx.fillRect(W/2-1,Math.floor(H*.3),2,2);
+  },
+  // 3: マーガレット
+  (ctx,W,H)=>{
+    ctx.fillStyle='#4a8c3f'; ctx.fillRect(W/2-1,Math.floor(H*.5),2,Math.floor(H*.48));
+    ctx.fillStyle='#eeeeee';
+    [[-8,0],[-6,-5],[-2,-8],[2,-8],[6,-5],[8,0],[6,5],[2,8],[-2,8],[-6,5]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-1,Math.floor(H*.28)+dy-1,3,6);
+    });
+    ctx.fillStyle='#ffee44'; ctx.fillRect(W/2-4,Math.floor(H*.26),8,8);
+    ctx.fillStyle='#ff8800'; ctx.fillRect(W/2-2,Math.floor(H*.28),4,4);
+    ctx.fillStyle='#5aaa3f'; ctx.fillRect(W/2+3,Math.floor(H*.62),5,3);
+  },
+  // 4: すみれ
+  (ctx,W,H)=>{
+    ctx.fillStyle='#4a8c3f'; ctx.fillRect(W/2-1,Math.floor(H*.52),2,Math.floor(H*.46));
+    ctx.fillStyle='#bb88ff';
+    [[-6,-2],[-4,-6],[0,-8],[4,-6],[6,-2],[-6,2],[6,2]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-2,Math.floor(H*.3)+dy-2,5,5);
+    });
+    ctx.fillStyle='#9966dd';
+    [[-5,-1],[-3,-5],[0,-7],[3,-5],[5,-1]].forEach(([dx,dy])=>{
+      ctx.fillRect(W/2+dx-1,Math.floor(H*.3)+dy-1,3,3);
+    });
+    ctx.fillStyle='#ffee88'; ctx.fillRect(W/2-2,Math.floor(H*.28),4,4);
+    ctx.fillStyle='#5aaa3f'; ctx.fillRect(W/2-6,Math.floor(H*.64),4,3);
+  }
+];
+
+const FLOWER_COLORS=['#ff5577','#ffcc00','#ffb3cc','#ffffff','#bb88ff'];
+const SEQ=[0,1,2,3,4,0,2,1,3,0,4,2,1,0,3,1,4,2,0,3];
+function getType(i){return SEQ[i%SEQ.length];}
+
+function makeFlowerCanvas(idx){
+  const type=getType(idx);
+  const canvas=document.createElement('canvas');
+  canvas.width=20; canvas.height=24;
+  const ctx=canvas.getContext('2d');
+  FLOWERS[type](ctx,20,24);
+  return canvas;
+}
+
+// ===== グリッド管理 =====
+let currentCount=0;
+let gridReady=false;
+
+window.initGrid=function initGrid(){
+  const grid=document.getElementById('field-grid');
+  grid.innerHTML='';
+  for(let i=0;i<100;i++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.id='c'+i;
+    grid.appendChild(cell);
+  }
+  gridReady=true;
+}
+
+const DIALOGS={
+  0:'さあ、お花をさかせよう！\nホシテンクレイに来るたびに\nひとつずつ増えていくよ♪',
+  1:'やったー！\nはじめてのお花が咲いたよ！\nかわいいね〜！',
+  10:'10本になったよ！\nだんだんにぎやかになってきた！',
+  30:'30本！\nお花畑っぽくなってきたね！',
+  50:'半分まで来たよ！\nみんなありがとう〜！',
+  80:'もうすぐ満開だよ！\nあと少しで完成〜！',
+  100:'🎊 満開になったー！\nみんなで作った最高のお花畑だ！'
+};
+
+function setDialog(count){
+  const keys=[0,1,10,30,50,80,100];
+  const key=keys.filter(k=>k<=count).pop();
+  if(DIALOGS[key]){
+    document.getElementById('dialog-box').innerHTML=DIALOGS[key].replace(/\n/g,'<br>');
+  }
+}
+
+window.renderCount=function renderCount(count,animate=false,newIdx=-1){
+  if(!gridReady)initGrid();
+  currentCount=count;
+  const pct=Math.round(count/100*100);
+
+  document.getElementById('count-num').textContent=count;
+  document.getElementById('hdr-count').textContent=count+' / 100本';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('stage-label').textContent=getLabel(count);
+  document.getElementById('stat-p').textContent=count;
+  document.getElementById('stat-r').textContent=100-count;
+  document.getElementById('stat-pct').textContent=pct+'%';
+  setDialog(count);
+
+  if(count>=100){
+    document.getElementById('complete-banner').classList.add('show');
+    document.getElementById('plant-btn').disabled=true;
+    document.getElementById('plant-msg').textContent='お花畑が満開になりました！🌸';
+  }
+
+  for(let i=0;i<100;i++){
+    const cell=document.getElementById('c'+i);
+    if(!cell)continue;
+    if(i<count){
+      if(!cell._planted){
+        cell._planted=true;
+        const canvas=makeFlowerCanvas(i);
+        cell.innerHTML='';
+        cell.appendChild(canvas);
+        if(animate&&i===newIdx){
+          cell.classList.add('latest');
+          addSparkle(cell,FLOWER_COLORS[getType(i)]);
+          setTimeout(()=>cell.classList.remove('latest'),2500);
+        }
+      }
+    } else {
+      if(cell._planted){
+        cell._planted=false;
+        cell.innerHTML='';
+      }
+    }
+  }
+}
+
+function addSparkle(cell,color){
+  const wrap=document.createElement('div');
+  wrap.className='sparkle-wrap';
+  const colors=[color,'#ffee44','#ffffff','#ff88cc'];
+  for(let i=0;i<8;i++){
+    const d=document.createElement('div');
+    d.className='sp';
+    const a=(i/8)*360;
+    const dist=10+Math.random()*8;
+    const tx=Math.cos(a*Math.PI/180)*dist;
+    const ty=Math.sin(a*Math.PI/180)*dist-10;
+    const size=Math.floor(3+Math.random()*3);
+    d.style.cssText=`background:${colors[i%colors.length]};width:${size}px;height:${size}px;--tx:${tx}px;--ty:${ty}px;animation-duration:${0.3+Math.random()*0.3}s;left:${Math.random()*6}px;top:0;`;
+    wrap.appendChild(d);
+  }
+  cell.appendChild(wrap);
+  setTimeout(()=>wrap.remove(),800);
+}
+
+function getLabel(n){
+  if(n===0)return'🌱 最初の一輪を咲かせよう！';
+  if(n<20)return'🌸 お花が咲きはじめた！';
+  if(n<40)return'🌷 どんどん増えてきた！';
+  if(n<60)return'🌺 お花畑らしくなってきた！';
+  if(n<80)return'🌻 もうすぐ満開！あと少し！';
+  if(n<100)return'🌈 ほぼ満開！みんなありがとう！';
+  return'🎊 満開のお花畑が完成！';
+}
+
+function launchParticles(){
+  const emojis=['🌸','🌷','✨','🌼','💮','⭐','🌺'];
+  const layer=document.getElementById('pl');
+  for(let i=0;i<16;i++){
+    const el=document.createElement('div');
+    el.className='pfloat';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.cssText=`left:${5+Math.random()*90}%;bottom:20%;animation-duration:${0.8+Math.random()*1}s;animation-delay:${Math.random()*0.4}s;font-size:${0.9+Math.random()*0.8}rem;`;
+    layer.appendChild(el);
+  }
+  setTimeout(()=>layer.innerHTML='',2500);
+}
+
+// ===== アクション =====
+window.plantFlower=async function(){
+  const today=new Date().toLocaleDateString('ja-JP');
+  if(localStorage.getItem('lastFlowerDate')===today){
+    document.getElementById('plant-msg').textContent='今日はもうお花を咲かせたよ！また明日ね🌸';
+    document.getElementById('plant-btn').disabled=true;
+    return;
+  }
+  if(currentCount>=100){
+    document.getElementById('plant-msg').textContent='お花畑が満開です！🎊';
+    return;
+  }
+  const btn=document.getElementById('plant-btn');
+  btn.disabled=true;
+  btn.textContent='🌸 さかせてるよ…';
+
+  // Firebase接続を最大3秒待つ
+  let waited=0;
+  while(!window._fbPlant && waited<30){
+    await new Promise(r=>setTimeout(r,100));
+    waited++;
+  }
+  if(window._fbPlant){
+    try{
+      const newCount=await window._fbPlant();
+      if(newCount!=null){
+        localStorage.setItem('lastFlowerDate',today);
+        renderCount(newCount,true,newCount-1);
+        document.getElementById('plant-msg').textContent=newCount+'本目のお花が咲いたよ！ありがとう🌸';
+        launchParticles();
+      } else {
+        btn.disabled=false;
+        btn.textContent='🌸 お花をさかせる';
+        document.getElementById('plant-msg').textContent='うまくいかなかったよ…もう一度試してね';
+      }
+    }catch(e){
+      btn.disabled=false;
+      btn.textContent='🌸 お花をさかせる';
+      document.getElementById('plant-msg').textContent='エラーが発生したよ…もう一度試してね😵';
+    }
+  } else {
+    // Firebase未接続時はローカルでカウント
+    const next=Math.min(currentCount+1,100);
+    localStorage.setItem('lastFlowerDate',today);
+    renderCount(next,true,next-1);
+    document.getElementById('plant-msg').textContent=next+'本目のお花が咲いたよ！ありがとう🌸（オフラインモード）';
+    launchParticles();
+  }
+};
+
+// ===== 初期化 =====
+initGrid();
+renderCount(0);
+
+const today=new Date().toLocaleDateString('ja-JP');
+if(localStorage.getItem('lastFlowerDate')===today){
+  document.getElementById('plant-btn').disabled=true;
+  document.getElementById('plant-msg').textContent='今日はもうお花を咲かせたよ！また明日ね🌸';
+}
+</script>
+
+<!-- Firebase -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getDatabase,ref,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+try{
+  const app=initializeApp({apiKey:"AIzaSyAvR8l3bmdFRL-ERsdV5cNF7YD8sIE6rhQ",authDomain:"kureme-rally.firebaseapp.com",databaseURL:"https://kureme-rally-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"kureme-rally",storageBucket:"kureme-rally.firebasestorage.app",messagingSenderId:"813648708672",appId:"1:813648708672:web:76661118cc2b74eaf38ba5"});
+  const db=getDatabase(app);
+  const fRef=ref(db,"flowerCount");
+  onValue(fRef,snap=>{if(window.renderCount)renderCount(Math.min(snap.val()||0,100));});
+  window._fbPlant=async function(){
+    let n;
+    await runTransaction(fRef,cur=>{const c=cur||0;if(c>=100)return c;n=c+1;return n;});
+    return n;
+  };
+}catch(e){console.log('Firebase:',e);}
+</script>
+</body>
+</html>
